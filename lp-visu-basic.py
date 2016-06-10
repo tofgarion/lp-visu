@@ -1,6 +1,11 @@
+import matplotlib
+matplotlib.use('TkAgg')
+
 import matplotlib.pyplot as plt
 import numpy as np
 
+from math import sqrt
+from matplotlib import animation
 from scipy.optimize import linprog
 from scipy.spatial import ConvexHull
 
@@ -17,24 +22,55 @@ x2_gui_bounds = (-1, 10)
 LINES = []
 POLYGON = []
 
+def intersect(a1, a2, b1, b2):
+    va = np.array(a2) - np.array(a1)
+    vb = np.array(b2) - np.array(b1)
+    vp = np.array(a1) - np.array(b1)
+
+    vap = np.empty_like(va)
+    vap[0] = -va[1]
+    vap[1] = va[0]
+    denom = np.dot(vap, vb)
+
+    if abs(denom) < 1E-6:
+        raise Exception('The two lines are parallel!')
+
+    num = np.dot(vap, vp)
+
+    return (num / denom.astype(float)) * vb + b1
+
+def intersect_with_gui_bounds(coeffs, point):
+    second_point = (point[0] + point[0] * coeffs[0],
+                    point[1] + point[1] * coeffs[1])
+    points = []
+
+    try:
+        points.append(intersect(x1_gui_bounds[0], x1_gui_bounds[1],
+                                point, second_point))
+    except:
+        pass
+
+    try:
+        points.append(intersect(x1_gui_bounds[0], x2_gui_bounds[0],
+                                point, second_point))
+    except:
+        pass
+
+    try:
+        points.append(intersect(x2_gui_bounds[0], x2_gui_bounds[1],
+                                point, second_point))
+    except:
+        pass
+
+    try:
+        points.append(intersect(x1_gui_bounds[1], x2_gui_bounds[1],
+                                point, second_point))
+    except:
+        pass
+
+    return points
+
 def draw_equations_and_polygon(ax):
-    def intersect(a1, a2, b1, b2):
-        va = np.array(a2) - np.array(a1)
-        vb = np.array(b2) - np.array(b1)
-        vp = np.array(a1) - np.array(b1)
-
-        vap = np.empty_like(va)
-        vap[0] = -va[1]
-        vap[1] = va[0]
-        denom = np.dot(vap, vb)
-
-        if abs(denom) < 1E-6:
-            raise Exception('The two lines are parallel!')
-
-        num = np.dot(vap, vp)
-
-        return (num / denom.astype(float)) * vb + b1
-
     # compute lines
     lines = [[(x1_gui_bounds[0], (b[A.index(l)] - x1_gui_bounds[0] * l[0]) / l[1]),
               (x1_gui_bounds[1], (b[A.index(l)] - x1_gui_bounds[1] * l[0]) / l[1])]
@@ -93,19 +129,36 @@ def draw_equations_and_polygon(ax):
 
     # draw polygon
     my_poly = np.array(polygon)
-    ax.plot(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
-            'r-', lw=2)
+    #ax.plot(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
+    #        'b-', lw=2)
     ax.fill(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
-            facecolor='b', edgecolor="r", lw=2)
+            facecolor='DeepSkyBlue', edgecolor="b", lw=2)
+
+X_POINT = None
+Y_POINT = None
+patch = None
+STEP = 0.0
+VECT = None
+FIG = None
+STARTED = False
+ax = None
+NB_IT = 0
 
 def init_picture():
-    # create figure
-    fig = plt.figure()
-    ax = plt.axes(xlim=x1_gui_bounds, ylim=x2_gui_bounds)
+    global patch
+    global objective
+    global FIG
+    global ax
+    global STEP
 
-    # set bounds
-    #plt.xlim(x1_gui_bounds)
-    #plt.ylim(x2_gui_bounds)
+    plt.ion()
+
+    # create figure
+    FIG = plt.figure()
+    ax = plt.axes(xlim=x1_gui_bounds, ylim=x2_gui_bounds)
+    patch = plt.Circle((x1_gui_bounds[0] - 1, x2_gui_bounds[0] - 1), 0.25, fc='y')
+
+    STEP = max(x1_gui_bounds[1] - x1_gui_bounds[0], x2_gui_bounds[1] - x2_gui_bounds[0]) / 100
 
     # set axes and grid
     ax.grid(color='grey', linestyle='-')
@@ -119,14 +172,56 @@ def init_picture():
     plt.draw()
     plt.show()
 
+def animate(i):
+    global patch
+    global VECT
+    global NB_IT
+    global objective
+
+    patch.center = (patch.center[0] + VECT[0] / NB_IT,
+                    patch.center[1] + VECT[1] / NB_IT)
+
+    return patch,
+
+def init_anim():
+    global ax
+    global patch
+    global objective
+
+    ax.add_patch(patch)
+
+    return patch,
+
 def lp_simple_callback(xk, **kwargs):
     " a simple callback function to see what is happening..."
+    global STEP
+    global VECT
+    global STARTED
+    global ax
+    global NB_IT
+
     print("current iteration: " + str(kwargs["nit"]))
     print("current tableau: \n" + str(kwargs["tableau"]))
     print("current indices: "   + str(kwargs["basis"]))
     print("current pivot: "     + str(kwargs["pivot"]))
     print("current solution: "  + str(xk))
     print()
+
+    if STARTED:
+        VECT = (xk[0] - patch.center[0],
+                xk[1] - patch.center[1])
+        dist = sqrt(VECT[0]**2 + VECT[1]**2)
+        NB_IT = int(dist / STEP)
+
+        if abs(VECT[0]) > 1E-6 or abs(VECT[1]) > 1E-6:
+            anim = animation.FuncAnimation(FIG, animate, frames=NB_IT,
+                                           init_func=init_anim,
+                                           interval=100, blit=True, repeat=False)
+    else:
+        STARTED = True
+        patch.center = (xk[0], xk[1])
+        ax.add_patch(patch)
+
     input()
 
 init_picture()
