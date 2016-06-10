@@ -10,8 +10,8 @@ c = [-4.0, -3.0]
 
 x1_bounds     = (0, None)
 x2_bounds     = (0, None)
-x1_gui_bounds = (-2, 16)
-x2_gui_bounds = (-2, 10)
+x1_gui_bounds = (-1, 16)
+x2_gui_bounds = (-1, 10)
 
 LINES = [ [(x1_gui_bounds[0], (b[A.index(l)] - x1_gui_bounds[0] * l[0]) / l[1]),
            (x1_gui_bounds[1], (b[A.index(l)] - x1_gui_bounds[1] * l[0]) / l[1])]
@@ -93,6 +93,17 @@ def draw_polygon():
     line_2d, = plt.plot(my_poly[CONVEX_HULL.vertices, 0], my_poly[CONVEX_HULL.vertices, 1], 'r-', lw=2)
     line_2d, = plt.fill(my_poly[CONVEX_HULL.vertices, 0], my_poly[CONVEX_HULL.vertices, 1], facecolor='b', edgecolor="r", lw=2)
 
+def init_picture():
+    plt.xlim(x1_gui_bounds)
+    plt.ylim(x2_gui_bounds)
+    plt.grid(color='grey', linestyle='-')
+    plt.gca().set_xlabel('x1')
+    plt.gca().set_ylabel('x2')
+    draw_lines()
+    draw_polygon()
+    plt.draw()
+    plt.show()
+
 def lp_simple_callback(xk, **kwargs):
     " a simple callback function to see what is happening..."
     print("current iteration: " + str(kwargs["nit"]))
@@ -103,11 +114,7 @@ def lp_simple_callback(xk, **kwargs):
     print()
     input()
 
-plt.ylim(x2_gui_bounds)
-draw_lines()
-draw_polygon()
-plt.draw()
-plt.show()
+init_picture()
 
 res = linprog(c, A_ub=A, b_ub=b, bounds = (x1_bounds, x2_bounds),
               callback=lp_simple_callback,
