@@ -13,94 +13,109 @@ x2_bounds     = (0, None)
 x1_gui_bounds = (-1, 16)
 x2_gui_bounds = (-1, 10)
 
-LINES = [ [(x1_gui_bounds[0], (b[A.index(l)] - x1_gui_bounds[0] * l[0]) / l[1]),
-           (x1_gui_bounds[1], (b[A.index(l)] - x1_gui_bounds[1] * l[0]) / l[1])]
-          if not (l[1] == 0) else [(b[A.index(l)] / l[0], x2_gui_bounds[0]), (b[A.index(l)] / l[0], x2_gui_bounds[1])]
-          for l in A ]
-
-LINES.append([(x1_bounds[0] if not (x1_bounds[0] is None) else x1_gui_bounds[0], 0),
-              (x1_bounds[1] if not (x1_bounds[1] is None) else x1_gui_bounds[1], 0)])
-
-LINES.append([(0, x2_bounds[0] if not (x2_bounds[0] is None) else x2_gui_bounds[0]),
-              (0, x2_bounds[1] if not (x2_bounds[1] is None) else x2_gui_bounds[1])])
-
-def draw_lines():
-    for l in LINES:
-        line_2d, = plt.plot([l[0][0], l[1][0]], [l[0][1], l[1][1]])
-        line_2d.set_color('black')
-        line_2d.set_linestyle('--')
-
-# compute all intersections...
-def intersect(a1, a2, b1, b2):
-    va = np.array(a2) - np.array(a1)
-    vb = np.array(b2) - np.array(b1)
-    vp = np.array(a1) - np.array(b1)
-
-    vap = np.empty_like(va)
-    vap[0] = -va[1]
-    vap[1] = va[0]
-    denom = np.dot(vap, vb)
-
-    if abs(denom) < 1E-6:
-        raise Exception('The two lines are parallel!')
-
-    num = np.dot(vap, vp)
-
-    return (num / denom.astype(float)) * vb + b1
-
-INTERSECTIONS = []
-
-for i in range(len(LINES)):
-    for j in range(i+1, len(LINES)):
-        try:
-            INTERSECTIONS.append(intersect(LINES[i][0],
-                                           LINES[i][1],
-                                           LINES[j][0],
-                                           LINES[j][1]))
-        except Exception:
-            pass
-
-# check which intersection is a vertex of the polygon
+# global variables to store domain vertices
+LINES = []
 POLYGON = []
-A_arr = np.array(A)
 
-for p in INTERSECTIONS:
-    if x1_bounds[0] is not None:
-        if p[0] < x1_bounds[0]:
-            continue
-    if x1_bounds[1] is not None:
-        if p[0] > x1_bounds[0]:
-            continue
-    if x2_bounds[0] is not None:
-        if p[1] < x2_bounds[0]:
-            continue
-    if x2_bounds[1] is not None:
-        if p[1] > x2_bounds[0]:
-            continue
-    if False in (np.dot(A_arr, p) <= b):
-        continue
-    POLYGON.append(p)
+def draw_equations_and_polygon(ax):
+    def intersect(a1, a2, b1, b2):
+        va = np.array(a2) - np.array(a1)
+        vb = np.array(b2) - np.array(b1)
+        vp = np.array(a1) - np.array(b1)
 
-# compute convex hull
-CONVEX_HULL = ConvexHull(POLYGON)
+        vap = np.empty_like(va)
+        vap[0] = -va[1]
+        vap[1] = va[0]
+        denom = np.dot(vap, vb)
 
-print(INTERSECTIONS)
-print(POLYGON)
-print([POLYGON[i] for i in CONVEX_HULL.vertices])
+        if abs(denom) < 1E-6:
+            raise Exception('The two lines are parallel!')
 
-def draw_polygon():
-    my_poly = np.array(POLYGON)
-    line_2d, = plt.plot(my_poly[CONVEX_HULL.vertices, 0], my_poly[CONVEX_HULL.vertices, 1], 'r-', lw=2)
-    line_2d, = plt.fill(my_poly[CONVEX_HULL.vertices, 0], my_poly[CONVEX_HULL.vertices, 1], facecolor='b', edgecolor="r", lw=2)
+        num = np.dot(vap, vp)
+
+        return (num / denom.astype(float)) * vb + b1
+
+    # compute lines
+    lines = [[(x1_gui_bounds[0], (b[A.index(l)] - x1_gui_bounds[0] * l[0]) / l[1]),
+              (x1_gui_bounds[1], (b[A.index(l)] - x1_gui_bounds[1] * l[0]) / l[1])]
+             if l[1] != 0 else
+             [(b[A.index(l)] / l[0], x2_gui_bounds[0]), (b[A.index(l)] / l[0], x2_gui_bounds[1])]
+             for l in A]
+
+    lines.append([(x1_bounds[0] if x1_bounds[0] is not None else x1_gui_bounds[0], 0),
+                  (x1_bounds[1] if x1_bounds[1] is not None else x1_gui_bounds[1], 0)])
+
+    lines.append([(0, x2_bounds[0] if x2_bounds[0] is not None else x2_gui_bounds[0]),
+                  (0, x2_bounds[1] if x2_bounds[1] is not None else x2_gui_bounds[1])])
+
+    for line in lines:
+        gui_line, = ax.plot([line[0][0], line[1][0]],
+                            [line[0][1], line[1][1]])
+        gui_line.set_color('black')
+        gui_line.set_linestyle('--')
+
+    # compute all intersections...
+    intersections = []
+    for i in range(len(lines)):
+        for j in range(i+1, len(lines)):
+            try:
+                intersections.append(intersect(lines[i][0],
+                                               lines[i][1],
+                                               lines[j][0],
+                                               lines[j][1]))
+            except Exception:
+                pass
+
+    # check which intersection is a vertex of the polygon
+    # and build the polygon
+    A_arr = np.array(A)
+    polygon = []
+
+    for p in intersections:
+        if x1_bounds[0] is not None:
+            if p[0] < x1_bounds[0]:
+                continue
+        if x1_bounds[1] is not None:
+            if p[0] > x1_bounds[0]:
+                continue
+        if x2_bounds[0] is not None:
+            if p[1] < x2_bounds[0]:
+                continue
+        if x2_bounds[1] is not None:
+            if p[1] > x2_bounds[0]:
+                continue
+        if False in (np.dot(A_arr, p) <= b):
+            continue
+        polygon.append(p)
+
+    # compute convex hull
+    convex_hull = ConvexHull(polygon)
+
+    # draw polygon
+    my_poly = np.array(polygon)
+    ax.plot(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
+            'r-', lw=2)
+    ax.fill(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
+            facecolor='b', edgecolor="r", lw=2)
 
 def init_picture():
-    plt.xlim(x1_gui_bounds)
-    plt.ylim(x2_gui_bounds)
-    plt.grid(color='grey', linestyle='-')
-    plt.gca().set_xlabel('x1')
-    plt.gca().set_ylabel('x2')
-    draw_lines()
-    draw_polygon()
+    # create figure
+    fig = plt.figure()
+    ax = plt.axes(xlim=x1_gui_bounds, ylim=x2_gui_bounds)
+
+    # set bounds
+    #plt.xlim(x1_gui_bounds)
+    #plt.ylim(x2_gui_bounds)
+
+    # set axes and grid
+    ax.grid(color='grey', linestyle='-')
+    ax.set_xlabel('x1')
+    ax.set_ylabel('x2')
+
+    # draw equations and polygon
+    draw_equations_and_polygon(ax)
+
+    # finalize
     plt.draw()
     plt.show()
 
