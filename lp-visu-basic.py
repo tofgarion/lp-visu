@@ -16,7 +16,6 @@ x2_bounds     = (0, None)
 x1_gui_bounds = (-1, 16)
 x2_gui_bounds = (-1, 10)
 patch         = None
-FIG           = None
 STARTED       = False
 ax            = None
 
@@ -134,15 +133,12 @@ def draw_equations_and_polygon(ax):
 
 def init_picture():
     global patch
-    global objective
-    global FIG
     global ax
-    global STEP
 
     plt.ion()
 
     # create figure
-    FIG = plt.figure()
+    fig = plt.figure()
     ax = plt.axes(xlim=x1_gui_bounds, ylim=x2_gui_bounds)
     patch = plt.Circle((x1_gui_bounds[0] - 1, x2_gui_bounds[0] - 1), 0.25, fc='y')
 
