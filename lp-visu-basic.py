@@ -1,6 +1,4 @@
 import matplotlib
-matplotlib.use('TkAgg')
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -17,10 +15,11 @@ x1_bounds     = (0, None)
 x2_bounds     = (0, None)
 x1_gui_bounds = (-1, 16)
 x2_gui_bounds = (-1, 10)
+patch         = None
+FIG           = None
+STARTED       = False
+ax            = None
 
-# global variables to store domain vertices
-LINES = []
-POLYGON = []
 
 def intersect(a1, a2, b1, b2):
     va = np.array(a2) - np.array(a1)
@@ -129,20 +128,9 @@ def draw_equations_and_polygon(ax):
 
     # draw polygon
     my_poly = np.array(polygon)
-    #ax.plot(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
-    #        'b-', lw=2)
     ax.fill(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
             facecolor='DeepSkyBlue', edgecolor="b", lw=2)
 
-X_POINT = None
-Y_POINT = None
-patch = None
-STEP = 0.0
-VECT = None
-FIG = None
-STARTED = False
-ax = None
-NB_IT = 0
 
 def init_picture():
     global patch
@@ -172,34 +160,27 @@ def init_picture():
     plt.draw()
     plt.show()
 
-def animate(i):
-    global patch
-    global VECT
-    global NB_IT
-    global objective
-
-    patch.center = (patch.center[0] + VECT[0] / NB_IT,
-                    patch.center[1] + VECT[1] / NB_IT)
-
-    return patch,
-
-def init_anim():
+def draw_pivot(xk):
+    global STARTED
     global ax
-    global patch
-    global objective
 
-    ax.add_patch(patch)
-
-    return patch,
+    # draw current pivot and current equation
+    if STARTED:
+        gui_line, = ax.plot([patch.center[0], xk[0]],
+                            [patch.center[1], xk[1]])
+        gui_line.set_color('red')
+        gui_line.set_linestyle('-')
+        gui_line.set_linewidth(3)
+        plt.draw()
+        patch.center = (xk[0], xk[1])
+        ax.add_patch(patch)
+    else:
+        STARTED = True
+        patch.center = (xk[0], xk[1])
+        ax.add_patch(patch)
 
 def lp_simple_callback(xk, **kwargs):
     " a simple callback function to see what is happening..."
-    global STEP
-    global VECT
-    global STARTED
-    global ax
-    global NB_IT
-
     print("current iteration: " + str(kwargs["nit"]))
     print("current tableau: \n" + str(kwargs["tableau"]))
     print("current indices: "   + str(kwargs["basis"]))
@@ -207,20 +188,7 @@ def lp_simple_callback(xk, **kwargs):
     print("current solution: "  + str(xk))
     print()
 
-    if STARTED:
-        VECT = (xk[0] - patch.center[0],
-                xk[1] - patch.center[1])
-        dist = sqrt(VECT[0]**2 + VECT[1]**2)
-        NB_IT = int(dist / STEP)
-
-        if abs(VECT[0]) > 1E-6 or abs(VECT[1]) > 1E-6:
-            anim = animation.FuncAnimation(FIG, animate, frames=NB_IT,
-                                           init_func=init_anim,
-                                           interval=100, blit=True, repeat=False)
-    else:
-        STARTED = True
-        patch.center = (xk[0], xk[1])
-        ax.add_patch(patch)
+    draw_pivot(xk)
 
     input()
 
