@@ -212,7 +212,7 @@ class LPVisu:
         # draw polygon
         my_poly = np.array(polygon)
         self.ax.fill(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
-                     facecolor='DeepSkyBlue', edgecolor="b", lw=2)
+                     facecolor='lawngreen', edgecolor="g", lw=2)
 
     def __init_picture(self):
         """Initialize the picture and draw the equations lines and polygon.
