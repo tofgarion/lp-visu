@@ -85,19 +85,22 @@ class LPVisu:
 
         # draw current pivot and current equation
         if self.started:
-            gui_line, = self.ax.plot([self.patch.center[0], xk[0]],
-                                     [self.patch.center[1], xk[1]])
-            gui_line.set_color('red')
-            gui_line.set_linestyle('-')
-            gui_line.set_linewidth(3)
-            plt.draw()
+            if self.patch is None:
+                self.patch = plt.Circle((self.x1_gui_bounds[0] - 1,
+                                         self.x2_gui_bounds[0] - 1),
+                                        0.25, fc='r')
+            else:
+                gui_line, = self.ax.plot([self.patch.center[0], xk[0]],
+                                         [self.patch.center[1], xk[1]])
+                gui_line.set_color('red')
+                gui_line.set_linestyle('-')
+                gui_line.set_linewidth(3)
+                plt.draw()
 
             self.patch.center = (xk[0], xk[1])
             self.ax.add_patch(self.patch)
         else:
             self.started      = True
-            self.patch.center = (xk[0], xk[1])
-            self.ax.add_patch(self.patch)
 
         if key_pressed:
             plt.waitforbuttonpress()
@@ -226,9 +229,6 @@ class LPVisu:
         self.fig   = plt.figure()
         self.ax    = plt.axes(xlim=self.x1_gui_bounds,
                               ylim=self.x2_gui_bounds)
-        self.patch = plt.Circle((self.x1_gui_bounds[0] - 1,
-                                 self.x2_gui_bounds[0] - 1),
-                                0.25, fc='y')
 
         # set axes and grid
         self.ax.grid(color='grey', linestyle='-')
