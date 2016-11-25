@@ -69,6 +69,8 @@ class LPVisu:
         self.ax            = None
         self.patch         = None
         self.started       = False
+        self.lines         = self.__compute_lines__()
+        self.polygon, self.convex_hull = self.__compute_polygon_convex_hull__()
 
         # initialize picture
         self.__init_picture()
@@ -100,7 +102,7 @@ class LPVisu:
             self.patch.center = (xk[0], xk[1])
             self.ax.add_patch(self.patch)
         else:
-            self.started      = True
+            self.started = True
 
         if key_pressed:
             plt.waitforbuttonpress()
@@ -145,15 +147,13 @@ class LPVisu:
 
         return points
 
-    def __draw_equations_and_polygon(self, ax):
-        """Draw equations of the linear programming problems and the
-        associated polygon.
+    def __compute_lines__(self):
+        """Computes lines points for equations. Returns a list with points
+        representing intersections of each constraint with the GUI bounds.
 
         Not to be used outside the class.
-
         """
 
-        # compute lines for equations
         lines = [[(self.x1_gui_bounds[0], (self.b[self.A.index(l)] - self.x1_gui_bounds[0] * l[0]) / l[1]),
                   (self.x1_gui_bounds[1], (self.b[self.A.index(l)] - self.x1_gui_bounds[1] * l[0]) / l[1])]
                  if l[1] != 0 else
@@ -169,21 +169,25 @@ class LPVisu:
         lines.append([(0, self.x2_bounds[0] if self.x2_bounds[0] is not None else self.x2_gui_bounds[0]),
                       (0, self.x2_bounds[1] if self.x2_bounds[1] is not None else self.x2_gui_bounds[1])])
 
-        for line in lines:
-            gui_line, = self.ax.plot([line[0][0], line[1][0]],
-                                     [line[0][1], line[1][1]])
-            gui_line.set_color('black')
-            gui_line.set_linestyle('--')
+        return lines
+
+    def __compute_polygon_convex_hull__(self):
+        """Compute the polygon of admissible solutions and the associated
+        convex hull. Returns a pair with first element being the list
+        of points of the polygon and second element the convex hull.
+
+        Not to be used outside the class.
+        """
 
         # compute all intersections...
         intersections = []
-        for i in range(len(lines)):
-            for j in range(i+1, len(lines)):
+        for i in range(len(self.lines)):
+            for j in range(i+1, len(self.lines)):
                 try:
-                    intersections.append(intersect(lines[i][0],
-                                                   lines[i][1],
-                                                   lines[j][0],
-                                                   lines[j][1]))
+                    intersections.append(intersect(self.lines[i][0],
+                                                   self.lines[i][1],
+                                                   self.lines[j][0],
+                                                   self.lines[j][1]))
                 except Exception:
                     pass
 
@@ -212,9 +216,26 @@ class LPVisu:
         # compute convex hull
         convex_hull = ConvexHull(polygon)
 
+        return polygon, convex_hull
+
+    def __draw_equations_and_polygon(self, ax):
+        """Draw equations of the linear programming problems and the
+        associated polygon.
+
+        Not to be used outside the class.
+        """
+
+        # draw lines for equations
+        for line in self.lines:
+            gui_line, = self.ax.plot([line[0][0], line[1][0]],
+                                     [line[0][1], line[1][1]])
+            gui_line.set_color('black')
+            gui_line.set_linestyle('--')
+
         # draw polygon
-        my_poly = np.array(polygon)
-        self.ax.fill(my_poly[convex_hull.vertices, 0], my_poly[convex_hull.vertices, 1],
+        my_poly = np.array(self.polygon)
+        self.ax.fill(my_poly[self.convex_hull.vertices, 0],
+                     my_poly[self.convex_hull.vertices, 1],
                      facecolor='palegreen', edgecolor="g", lw=2)
 
     def __init_picture(self):
