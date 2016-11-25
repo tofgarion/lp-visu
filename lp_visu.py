@@ -109,7 +109,7 @@ class LPVisu:
             if self.obj_patch is not None:
                 self.obj_patch.remove()
 
-    def draw_pivot(self, xk, key_pressed=False, wait_time=1):
+    def draw_pivot_interactive(self, xk, key_pressed=False, wait_time=1):
         """Draw a yellow circle at the current pivot position.
 
         Keyword Arguments:

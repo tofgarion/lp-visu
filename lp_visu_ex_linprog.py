@@ -33,7 +33,7 @@ def lp_simple_callback(xk, **kwargs):
     print("current solution: "  + str(xk))
     print()
 
-    visu.draw_pivot(xk, True)
+    visu.draw_pivot_interactive(xk, True)
 
 # solve the problem
 res = linprog(c, A_ub=A, b_ub=b, bounds = (x1_bounds, x2_bounds),
