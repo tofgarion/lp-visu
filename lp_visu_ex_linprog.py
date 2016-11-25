@@ -36,7 +36,7 @@ def lp_simple_callback(xk, **kwargs):
     visu.draw_pivot_interactive(xk, True)
 
 # solve the problem
-res = linprog(c, A_ub=A, b_ub=b, bounds = (x1_bounds, x2_bounds),
+res = linprog(c, A_ub=A, b_ub=b, bounds=(x1_bounds, x2_bounds),
               callback=lp_simple_callback,
               options={"disp": True})
 
