@@ -62,7 +62,6 @@ class LPVisu:
         x2_grid_step  -- an integer representing the step for x2 axis
         epsilon       -- the precision needed for floating points operations.
                          Defaults to 1E-6
-
         """
 
         self.A             = A
@@ -79,8 +78,8 @@ class LPVisu:
         self.pivot_patch   = None
         self.obj_patch     = None
         self.started       = False
-        self.lines         = self.__compute_lines__()
-        self.polygon, self.convex_hull = self.__compute_polygon_convex_hull__(self.A, self.b)
+        self.lines         = self._compute_lines()
+        self.polygon, self.convex_hull = self._compute_polygon_convex_hull(self.A, self.b)
 
         # initialize picture
         self.__init_picture()
@@ -160,45 +159,7 @@ class LPVisu:
         else:
             plt.pause(wait_time)
 
-
-    def __intersect_with_gui_bounds(self, coeffs, point):
-        """Compute intersection points between a line represented by its coeff
-        and one of its point and the GUI bounds.
-
-        Not to be used outside the class.
-
-        """
-        second_point = (point[0] + point[0] * coeffs[0],
-                        point[1] + point[1] * coeffs[1])
-        points = []
-
-        try:
-            points.append(intersect(self.x1_gui_bounds[0], self.x1_gui_bounds[1],
-                                    point, second_point))
-        except:
-            pass
-
-        try:
-            points.append(intersect(self.x1_gui_bounds[0], self.x2_gui_bounds[0],
-                                    point, second_point))
-        except:
-            pass
-
-        try:
-            points.append(intersect(self.x2_gui_bounds[0], self.x2_gui_bounds[1],
-                                    point, second_point))
-        except:
-            pass
-
-        try:
-            points.append(intersect(self.x1_gui_bounds[1], self.x2_gui_bounds[1],
-                                    point, second_point))
-        except:
-            pass
-
-        return points
-
-    def __compute_lines__(self):
+    def _compute_lines(self):
         """Computes lines points for equations. Returns a list with points
         representing intersections of each constraint with the GUI bounds.
 
@@ -222,7 +183,7 @@ class LPVisu:
 
         return lines
 
-    def __compute_polygon_convex_hull__(self, A, b):
+    def _compute_polygon_convex_hull(self, A, b):
         """Compute the polygon of admissible solutions and the associated
         convex hull. Returns a pair with first element being the list
         of points of the polygon and second element the convex hull.
