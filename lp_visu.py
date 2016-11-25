@@ -45,7 +45,8 @@ class LPVisu:
 
     def __init__(self, A, b, c,
                  x1_bounds, x2_bounds,
-                 x1_gui_bounds, x2_gui_bounds):
+                 x1_gui_bounds, x2_gui_bounds,
+                 epsilon=1E-6):
         """Create a new LPVisu object.
 
         Keyword Arguments:
@@ -56,6 +57,8 @@ class LPVisu:
         x2_bounds     -- a pair representing x2 bounds. Use None for infinity
         x1_gui_bounds -- a pair representing x1 bounds in the GUI
         x2_gui_bounds -- a pair representing x2 bounds in the GUI
+        epsilon       -- the precision needed for floating points operations.
+                         Defaults to 1E-6
 
         """
 
@@ -66,6 +69,7 @@ class LPVisu:
         self.x2_bounds     = x2_bounds
         self.x1_gui_bounds = x1_gui_bounds
         self.x2_gui_bounds = x2_gui_bounds
+        self.epsilon       = epsilon
         self.ax            = None
         self.patch         = None
         self.started       = False
@@ -209,7 +213,7 @@ class LPVisu:
             if self.x2_bounds[1] is not None:
                 if p[1] > self.x2_bounds[0]:
                     continue
-            if False in (np.dot(A_arr, p) <= self.b):
+            if False in (np.dot(A_arr, p) - self.b <= self.epsilon):
                 continue
             polygon.append(p)
 
