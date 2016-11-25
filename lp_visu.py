@@ -143,7 +143,7 @@ class LPVisu:
 
         if self.started:
             if self.pivot_patch is None:
-                self.pivot_patch = plt.Circle((0, 0), 0.25, fc='r')
+                self.pivot_patch = plt.Circle((0, 0), 0.1, fc='r')
             else:
                 gui_line, = self.ax.plot([self.pivot_patch.center[0], xk[0]],
                                          [self.pivot_patch.center[1], xk[1]])
