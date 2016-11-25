@@ -1,3 +1,6 @@
+"""A simple example that uses lp_visu with scipy.optimize.linprog to
+show how the simplex algorithm runs."""
+
 from lp_visu import LPVisu
 from scipy.optimize import linprog
 
