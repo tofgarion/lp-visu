@@ -46,6 +46,7 @@ class LPVisu:
     def __init__(self, A, b, c,
                  x1_bounds, x2_bounds,
                  x1_gui_bounds, x2_gui_bounds,
+                 x1_grid_step=1, x2_grid_step=1,
                  epsilon=1E-6):
         """Create a new LPVisu object.
 
@@ -57,6 +58,8 @@ class LPVisu:
         x2_bounds     -- a pair representing x2 bounds. Use None for infinity
         x1_gui_bounds -- a pair representing x1 bounds in the GUI
         x2_gui_bounds -- a pair representing x2 bounds in the GUI
+        x1_grid_step  -- an integer representing the step for x1 axis
+        x2_grid_step  -- an integer representing the step for x2 axis
         epsilon       -- the precision needed for floating points operations.
                          Defaults to 1E-6
 
@@ -69,6 +72,8 @@ class LPVisu:
         self.x2_bounds     = x2_bounds
         self.x1_gui_bounds = x1_gui_bounds
         self.x2_gui_bounds = x2_gui_bounds
+        self.x1_grid_step  = x1_grid_step
+        self.x2_grid_step  = x2_grid_step
         self.epsilon       = epsilon
         self.ax            = None
         self.patch         = None
@@ -257,6 +262,12 @@ class LPVisu:
 
         # set axes and grid
         self.ax.grid(color='grey', linestyle='-')
+        self.ax.set_xticks(np.arange(self.x1_gui_bounds[0],
+                                     self.x1_gui_bounds[1],
+                                     self.x1_grid_step))
+        self.ax.set_yticks(np.arange(self.x2_gui_bounds[0],
+                                     self.x2_gui_bounds[1],
+                                     self.x2_grid_step))
         self.ax.set_xlabel('x1')
         self.ax.set_ylabel('x2')
 
