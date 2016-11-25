@@ -78,8 +78,10 @@ class LPVisu:
         self.pivot_patch   = None
         self.obj_patch     = None
         self.started       = False
-        self.lines         = self._compute_lines()
-        self.polygon, self.convex_hull = self._compute_polygon_convex_hull(self.A, self.b)
+        self.lines         = self._compute_lines(self.A, self.b)
+        self.polygon, self.convex_hull = self._compute_polygon_convex_hull(self.A,
+                                                                           self.b,
+                                                                           self.lines)
 
         # initialize picture
         self.__init_picture()
@@ -159,31 +161,39 @@ class LPVisu:
         else:
             plt.pause(wait_time)
 
-    def _compute_lines(self):
+    def _compute_lines(self, A, b, bounds=True):
         """Computes lines points for equations. Returns a list with points
         representing intersections of each constraint with the GUI bounds.
+
+        This method is parametrized to be possibly used with subclasses.
+
+        Keyword Arguments:
+        A      -- the A matrix
+        b      -- the b matrix
+        bounds -- if x1 and x2 bounds should be taken into account (defaults: True)
 
         Not to be used outside the class.
         """
 
-        lines = [[(self.x1_gui_bounds[0], (self.b[self.A.index(l)] - self.x1_gui_bounds[0] * l[0]) / l[1]),
-                  (self.x1_gui_bounds[1], (self.b[self.A.index(l)] - self.x1_gui_bounds[1] * l[0]) / l[1])]
+        lines = [[(self.x1_gui_bounds[0], (b[A.index(l)] - self.x1_gui_bounds[0] * l[0]) / l[1]),
+                  (self.x1_gui_bounds[1], (b[A.index(l)] - self.x1_gui_bounds[1] * l[0]) / l[1])]
                  if l[1] != 0 else
-                 [(self.b[self.A.index(l)] / l[0], self.x2_gui_bounds[0]),
-                  (self.b[self.A.index(l)] / l[0], self.x2_gui_bounds[1])]
-                 for l in self.A]
+                 [(b[A.index(l)] / l[0], self.x2_gui_bounds[0]),
+                  (b[A.index(l)] / l[0], self.x2_gui_bounds[1])]
+                 for l in A]
 
-        lines.append([(self.x1_bounds[0] if self.x1_bounds[0] is not None
-                       else self.x1_gui_bounds[0], 0),
-                      (self.x1_bounds[1] if self.x1_bounds[1] is not None
-                       else self.x1_gui_bounds[1], 0)])
+        if bounds:
+            lines.append([(self.x1_bounds[0] if self.x1_bounds[0] is not None
+                           else self.x1_gui_bounds[0], 0),
+                          (self.x1_bounds[1] if self.x1_bounds[1] is not None
+                           else self.x1_gui_bounds[1], 0)])
 
-        lines.append([(0, self.x2_bounds[0] if self.x2_bounds[0] is not None else self.x2_gui_bounds[0]),
-                      (0, self.x2_bounds[1] if self.x2_bounds[1] is not None else self.x2_gui_bounds[1])])
+            lines.append([(0, self.x2_bounds[0] if self.x2_bounds[0] is not None else self.x2_gui_bounds[0]),
+                          (0, self.x2_bounds[1] if self.x2_bounds[1] is not None else self.x2_gui_bounds[1])])
 
         return lines
 
-    def _compute_polygon_convex_hull(self, A, b):
+    def _compute_polygon_convex_hull(self, A, b, lines):
         """Compute the polygon of admissible solutions and the associated
         convex hull. Returns a pair with first element being the list
         of points of the polygon and second element the convex hull.
@@ -191,27 +201,28 @@ class LPVisu:
         This method is parametrized to be possibly used with subclasses.
 
         Keyword Arguments:
-        A -- the A matrix
-        b -- the b matrix
+        A     -- the A matrix
+        b     -- the b matrix
+        lines -- the GUI lines for the equations
 
         Not to be used outside the class.
         """
 
         # compute all intersections...
         intersections = []
-        for i in range(len(self.lines)):
-            for j in range(i+1, len(self.lines)):
+        for i in range(len(lines)):
+            for j in range(i+1, len(lines)):
                 try:
-                    intersections.append(intersect(self.lines[i][0],
-                                                   self.lines[i][1],
-                                                   self.lines[j][0],
-                                                   self.lines[j][1]))
+                    intersections.append(intersect(lines[i][0],
+                                                   lines[i][1],
+                                                   lines[j][0],
+                                                   lines[j][1]))
                 except Exception:
                     pass
 
         # check which intersection is a vertex of the polygon
         # and build the polygon
-        A_arr = np.array(self.A)
+        A_arr = np.array(A)
         polygon = []
 
         for p in intersections:
@@ -227,7 +238,7 @@ class LPVisu:
             if self.x2_bounds[1] is not None:
                 if p[1] > self.x2_bounds[0]:
                     continue
-            if False in (np.dot(A_arr, p) - self.b <= self.epsilon):
+            if False in (np.dot(A_arr, p) - b <= self.epsilon):
                 continue
             polygon.append(p)
 
@@ -286,3 +297,90 @@ class LPVisu:
         # finalize
         plt.draw()
         plt.show()
+
+
+class ILPVisu(LPVisu):
+    """This class is a simple visualization for integer linear programs
+    with 2 variables.
+
+    """
+
+    def __init__(self, A, b, c,
+                 x1_bounds, x2_bounds,
+                 x1_gui_bounds, x2_gui_bounds,
+                 x1_grid_step=1, x2_grid_step=1,
+                 epsilon=1E-6):
+        """Create a new ILPVisu object.
+
+        Keyword Arguments:
+        A             -- a 2D matrix giving the constraints of the LP problem
+        b             -- a vector representing the upper-bound of the constraints
+        c             -- the coefficients of the linear function to be minimized
+        x1_bounds     -- a pair representing x1 bounds. Use None for infinity
+        x2_bounds     -- a pair representing x2 bounds. Use None for infinity
+        x1_gui_bounds -- a pair representing x1 bounds in the GUI
+        x2_gui_bounds -- a pair representing x2 bounds in the GUI
+        x1_grid_step  -- an integer representing the step for x1 axis
+        x2_grid_step  -- an integer representing the step for x2 axis
+        epsilon       -- the precision needed for floating points operations.
+                         Defaults to 1E-6
+        """
+
+        # call constructor of superclass
+        super().__init__(A, b, c,
+                         x1_bounds, x2_bounds,
+                         x1_gui_bounds, x2_gui_bounds,
+                         x1_grid_step, x2_grid_step,
+                         epsilon)
+        self.lines_cuts = []
+        self.A_cuts = []
+        self.b_cuts = []
+        self.cuts_patch = None
+        self.cuts_lines_patch = []
+
+    def add_cuts(self, A_cuts, b_cuts):
+        """A method to add cuts. Set one argument to None to reset.
+
+        Keyword Arguments:
+        A_cuts -- the A matrix for the cuts
+        b_cuts -- the b matrix for the cuts
+        """
+
+        if self.cuts_patch is not None:
+            try:
+                self.cuts_patch.remove()
+            except ValueError:
+                pass
+
+        self.A_cuts = self.A_cuts + A_cuts
+        self.b_cuts = self.b_cuts + b_cuts
+        self.lines_cuts = self._compute_lines(self.A_cuts, self.b_cuts, bounds=False)
+
+        polygon_cuts, convex_hull_cuts = self._compute_polygon_convex_hull(self.A + self.A_cuts,
+                                                                           self.b + self.b_cuts,
+                                                                           self.lines + self.lines_cuts)
+
+        my_poly = np.array(polygon_cuts)
+        self.cuts_patch = plt.Polygon([(my_poly[index, 0], my_poly[index, 1])
+                                       for index in convex_hull_cuts.vertices],
+                                      edgecolor='b', facecolor='cyan')
+        self.ax.add_patch(self.cuts_patch)
+
+        for l in self.lines_cuts:
+            my_line_patch = plt.Polygon(l, color='b', linewidth=2,
+                                        linestyle='dashed', closed=False)
+            self.ax.add_patch(my_line_patch)
+            self.cuts_lines_patch.append(my_line_patch)
+
+    def reset_cuts(self):
+        """Remove all cuts."""
+
+        if self.cuts_patch is not None:
+            self.cuts_patch.remove()
+
+            for p in self.cuts_lines_patch:
+                p.remove()
+
+            self.A_cuts = []
+            self.b_cuts = []
+            self.lines_cuts = []
