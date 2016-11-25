@@ -89,7 +89,7 @@ class LPVisu:
         """Draw the objective function for a specific value.
 
         Keyword Arguments:
-        value -- the value of the objective function
+        value -- the value of the objective function. If None, remove objective function line
         """
 
         if value is not None:
@@ -109,8 +109,28 @@ class LPVisu:
             if self.obj_patch is not None:
                 self.obj_patch.remove()
 
+    def draw_pivot(self, xk):
+        """Draw a red circle at the current pivot position.
+
+        Keyword Arguments:
+        xk -- a pair representing the position of the new pivot. If None, remove pivot
+        """
+
+        if xk is not None:
+            if self.pivot_patch is None:
+                self.pivot_patch = plt.Circle((xk[0], xk[1]),
+                                              0.25, fc='r')
+            else:
+                self.pivot_patch.center = (xk[0], xk[1])
+            self.ax.add_patch(self.pivot_patch)
+        else:
+            if self.pivot_patch is not None:
+                self.pivot_patch.remove()
+
+
     def draw_pivot_interactive(self, xk, key_pressed=False, wait_time=1):
-        """Draw a yellow circle at the current pivot position.
+        """Draw a red circle at the current pivot position.
+        To be used interactively.
 
         Keyword Arguments:
         xk          -- a pair representing the position of the new pivot
@@ -121,9 +141,7 @@ class LPVisu:
 
         if self.started:
             if self.pivot_patch is None:
-                self.pivot_patch = plt.Circle((self.x1_gui_bounds[0] - 1,
-                                               self.x2_gui_bounds[0] - 1),
-                                              0.25, fc='r')
+                self.pivot_patch = plt.Circle((0, 0), 0.25, fc='r')
             else:
                 gui_line, = self.ax.plot([self.pivot_patch.center[0], xk[0]],
                                          [self.pivot_patch.center[1], xk[1]])

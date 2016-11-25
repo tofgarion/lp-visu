@@ -25,15 +25,24 @@ visu = LPVisu(A, b, c,
 
 # draw objective function with value = 20
 visu.draw_objective_function(20)
-
 input()
 
 # remove objective function
 visu.draw_objective_function(None)
-
 input()
 
 # draw objective function with value = 20
 visu.draw_objective_function(40)
+input()
 
+# add a pivot (badly placed!)
+visu.draw_pivot((1, 1))
+input()
+
+# remove pivot
+visu.draw_pivot(None)
+input()
+
+# add pivot again...
+visu.draw_pivot((2, 2))
 input()
