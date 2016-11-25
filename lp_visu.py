@@ -8,6 +8,7 @@ import numpy as np
 
 from scipy.spatial import ConvexHull
 
+
 def intersect(a1, a2, b1, b2):
     """
     Helper function to compute intersection of the two lines (a1, a2)
@@ -65,21 +66,21 @@ class LPVisu:
                          Defaults to 1E-6
         """
 
-        self.A             = A
-        self.b             = b
-        self.c             = c
-        self.x1_bounds     = x1_bounds
-        self.x2_bounds     = x2_bounds
+        self.A = A
+        self.b = b
+        self.c = c
+        self.x1_bounds = x1_bounds
+        self.x2_bounds = x2_bounds
         self.x1_gui_bounds = x1_gui_bounds
         self.x2_gui_bounds = x2_gui_bounds
-        self.x1_grid_step  = x1_grid_step
-        self.x2_grid_step  = x2_grid_step
-        self.epsilon       = epsilon
-        self.ax            = None
-        self.pivot_patch   = None
-        self.obj_patch     = None
-        self.started       = False
-        self.lines         = self._compute_lines(self.A, self.b)
+        self.x1_grid_step = x1_grid_step
+        self.x2_grid_step = x2_grid_step
+        self.epsilon = epsilon
+        self.ax = None
+        self.pivot_patch = None
+        self.obj_patch = None
+        self.started = False
+        self.lines = self._compute_lines(self.A, self.b)
         self.polygon, self.convex_hull = self._compute_polygon_convex_hull(self.A,
                                                                            self.b,
                                                                            self.lines)
@@ -101,9 +102,9 @@ class LPVisu:
                       (self.x1_gui_bounds[1],
                        (value - self.x1_gui_bounds[1] * self.c[0]) /
                        self.c[1])] \
-                     if abs(self.c[1]) > self.epsilon else \
-                     [(value / self.c[0], self.x2_gui_bounds[0]),
-                      (value / self.c[0], self.x2_gui_bounds[1])]
+                if abs(self.c[1]) > self.epsilon else \
+                [(value / self.c[0], self.x2_gui_bounds[0]),
+                 (value / self.c[0], self.x2_gui_bounds[1])]
 
             self.obj_patch = plt.Polygon(points, color='r', linewidth=2.0)
             self.ax.add_patch(self.obj_patch)
@@ -128,7 +129,6 @@ class LPVisu:
         else:
             if self.pivot_patch is not None:
                 self.pivot_patch.remove()
-
 
     def draw_pivot_interactive(self, xk, key_pressed=False, wait_time=1):
         """Draw a red circle at the current pivot position.
@@ -212,7 +212,7 @@ class LPVisu:
         # compute all intersections...
         intersections = []
         for i in range(len(lines)):
-            for j in range(i+1, len(lines)):
+            for j in range(i + 1, len(lines)):
                 try:
                     intersections.append(intersect(lines[i][0],
                                                    lines[i][1],
@@ -277,9 +277,9 @@ class LPVisu:
         plt.ion()
 
         # create figure
-        self.fig   = plt.figure()
-        self.ax    = plt.axes(xlim=self.x1_gui_bounds,
-                              ylim=self.x2_gui_bounds)
+        self.fig = plt.figure()
+        self.ax = plt.axes(xlim=self.x1_gui_bounds,
+                           ylim=self.x2_gui_bounds)
 
         # set axes and grid
         self.ax.grid(color='grey', linestyle='-')
@@ -368,7 +368,8 @@ class ILPVisu(LPVisu):
 
         self.A_cuts = self.A_cuts + A_cuts
         self.b_cuts = self.b_cuts + b_cuts
-        self.lines_cuts = self._compute_lines(self.A_cuts, self.b_cuts, bounds=False)
+        self.lines_cuts = self._compute_lines(
+            self.A_cuts, self.b_cuts, bounds=False)
 
         polygon_cuts, convex_hull_cuts = self._compute_polygon_convex_hull(self.A + self.A_cuts,
                                                                            self.b + self.b_cuts,
