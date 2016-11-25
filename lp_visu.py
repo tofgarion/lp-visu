@@ -95,14 +95,14 @@ class LPVisu:
 
         if value is not None:
             points = [(self.x1_gui_bounds[0],
-                       (value + self.x1_gui_bounds[0] * self.c[0]) / -
+                       (value - self.x1_gui_bounds[0] * self.c[0]) /
                        self.c[1]),
                       (self.x1_gui_bounds[1],
-                       (value + self.x1_gui_bounds[1] * self.c[0]) / -
+                       (value - self.x1_gui_bounds[1] * self.c[0]) /
                        self.c[1])] \
                      if abs(self.c[1]) > self.epsilon else \
-                     [(value / - self.c[0], self.x2_gui_bounds[0]),
-                      (value / - self.c[0], self.x2_gui_bounds[1])]
+                     [(value / self.c[0], self.x2_gui_bounds[0]),
+                      (value / self.c[0], self.x2_gui_bounds[1])]
 
             self.obj_patch = plt.Polygon(points, color='r', linewidth=2.0)
             self.ax.add_patch(self.obj_patch)

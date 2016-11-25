@@ -4,10 +4,12 @@ show how the simplex algorithm runs."""
 from lp_visu import LPVisu
 from scipy.optimize import linprog
 
+import numpy as np
+
 # problem definition
 A = [[1.0, 0.0], [1.0, 2.0], [2.0, 1.0]]
 b = [8.0, 15.0, 18.0]
-c = [-4.0, -3.0]
+c = [4.0, 3.0]
 
 x1_bounds = (0, None)
 x2_bounds = (0, None)
@@ -36,7 +38,8 @@ def lp_simple_callback(xk, **kwargs):
     visu.draw_pivot_interactive(xk, True)
 
 # solve the problem
-res = linprog(c, A_ub=A, b_ub=b, bounds=(x1_bounds, x2_bounds),
+res = linprog(-1.0 * np.array(c), A_ub=A, b_ub=b,
+              bounds=(x1_bounds, x2_bounds),
               callback=lp_simple_callback,
               options={"disp": True})
 
