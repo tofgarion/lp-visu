@@ -3,6 +3,7 @@ two variables.
 """
 
 import matplotlib.pyplot as plt
+import matplotlib.path as path
 import numpy as np
 
 from scipy.spatial import ConvexHull
@@ -90,7 +91,7 @@ class LPVisu:
         """Draw the objective function for a specific value.
 
         Keyword Arguments:
-        value -- the value of the objective function. If None, remove objective function line
+        value -- the value of the objective function. If None, remove objective function line.
         """
 
         if value is not None:
@@ -337,6 +338,12 @@ class ILPVisu(LPVisu):
         self.b_cuts = []
         self.cuts_patch = None
         self.cuts_lines_patch = []
+        self.cuts_circles = []
+        my_poly = np.array(self.polygon)
+        my_initial_path = plt.Polygon([(my_poly[index, 0], my_poly[index, 1])
+                                       for index in self.convex_hull.vertices],
+                                      edgecolor='b', facecolor='cyan')
+        self.__draw_integers(my_poly, my_initial_path)
 
     def add_cuts(self, A_cuts, b_cuts):
         """A method to add cuts. Set one argument to None to reset.
@@ -346,9 +353,15 @@ class ILPVisu(LPVisu):
         b_cuts -- the b matrix for the cuts
         """
 
-        if self.cuts_patch is not None:
-            try:
+        try:
+            if self.cuts_patch is not None:
                 self.cuts_patch.remove()
+        except ValueError:
+            pass
+
+        for c in self.cuts_circles:
+            try:
+                c.remove()
             except ValueError:
                 pass
 
@@ -372,6 +385,8 @@ class ILPVisu(LPVisu):
             self.ax.add_patch(my_line_patch)
             self.cuts_lines_patch.append(my_line_patch)
 
+        self.__draw_integers(my_poly, self.cuts_patch._path)
+
     def reset_cuts(self):
         """Remove all cuts."""
 
@@ -384,3 +399,23 @@ class ILPVisu(LPVisu):
             self.A_cuts = []
             self.b_cuts = []
             self.lines_cuts = []
+
+            my_poly = np.array(self.polygon)
+            my_initial_path = plt.Polygon([(my_poly[index, 0], my_poly[index, 1])
+                                           for index in self.convex_hull.vertices],
+                                          edgecolor='b', facecolor='cyan')
+            self.__draw_integers(my_poly, my_initial_path)
+
+    def __draw_integers(self, polygon, patch):
+        x1_min = min([p[0] for p in polygon])
+        x1_max = max([p[0] for p in polygon])
+
+        x2_min = min([p[1] for p in polygon])
+        x2_max = max([p[1] for p in polygon])
+
+        for x in range(int(x1_min), int(x1_max) + 1):
+            for y in range(int(x2_min), int(x2_max) + 1):
+                if patch.contains_point((x, y), radius=self.epsilon):
+                    circle = plt.Circle((x, y), 0.075, fc='b')
+                    self.cuts_circles.append(circle)
+                    self.ax.add_patch(circle)
