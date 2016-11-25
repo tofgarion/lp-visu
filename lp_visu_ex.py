@@ -1,19 +1,17 @@
 """A simple example that uses lp_visu to visualize the polygon of
 acceptable solutions for a particular problem. The objective function
-is also drawn with some value.
-
+and pivot are also drawn with some (dummy) values.
 """
 
 from lp_visu import LPVisu
-from scipy.optimize import linprog
 
 # problem definition
 A = [[1.0, 0.0], [1.0, 2.0], [2.0, 1.0]]
 b = [8.0, 15.0, 18.0]
 c = [-4.0, -3.0]
 
-x1_bounds     = (0, None)
-x2_bounds     = (0, None)
+x1_bounds = (0, None)
+x2_bounds = (0, None)
 
 # GUI bounds
 x1_gui_bounds = (-1, 16)
