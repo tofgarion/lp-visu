@@ -30,9 +30,9 @@ def lp_simple_callback(xk, **kwargs):
 
     print("current iteration: " + str(kwargs["nit"]))
     print("current tableau: \n" + str(kwargs["tableau"]))
-    print("current indices: "   + str(kwargs["basis"]))
-    print("current pivot: "     + str(kwargs["pivot"]))
-    print("current solution: "  + str(xk))
+    print("current indices: " + str(kwargs["basis"]))
+    print("current pivot: " + str(kwargs["pivot"]))
+    print("current solution: " + str(xk))
     print()
 
     visu.draw_pivot_interactive(xk, True)
