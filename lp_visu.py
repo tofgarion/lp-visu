@@ -76,13 +76,38 @@ class LPVisu:
         self.x2_grid_step  = x2_grid_step
         self.epsilon       = epsilon
         self.ax            = None
-        self.patch         = None
+        self.pivot_patch   = None
+        self.obj_patch     = None
         self.started       = False
         self.lines         = self.__compute_lines__()
         self.polygon, self.convex_hull = self.__compute_polygon_convex_hull__()
 
         # initialize picture
         self.__init_picture()
+
+    def draw_objective_function(self, value):
+        """Draw the objective function for a specific value.
+
+        Keyword Arguments:
+        value -- the value of the objective function
+        """
+
+        if value is not None:
+            points = [(self.x1_gui_bounds[0],
+                       (value + self.x1_gui_bounds[0] * self.c[0]) / -
+                       self.c[1]),
+                      (self.x1_gui_bounds[1],
+                       (value + self.x1_gui_bounds[1] * self.c[0]) / -
+                       self.c[1])] \
+                     if abs(self.c[1]) > self.epsilon else \
+                     [(value / - self.c[0], self.x2_gui_bounds[0]),
+                      (value / - self.c[0], self.x2_gui_bounds[1])]
+
+            self.obj_patch = plt.Polygon(points, color='r', linewidth=2.0)
+            self.ax.add_patch(self.obj_patch)
+        else:
+            if self.obj_patch is not None:
+                self.obj_patch.remove()
 
     def draw_pivot(self, xk, key_pressed=False, wait_time=1):
         """Draw a yellow circle at the current pivot position.
@@ -94,22 +119,21 @@ class LPVisu:
         wait_time   -- the time in seconds to wait
         """
 
-        # draw current pivot and current equation
         if self.started:
-            if self.patch is None:
-                self.patch = plt.Circle((self.x1_gui_bounds[0] - 1,
-                                         self.x2_gui_bounds[0] - 1),
-                                        0.25, fc='r')
+            if self.pivot_patch is None:
+                self.pivot_patch = plt.Circle((self.x1_gui_bounds[0] - 1,
+                                               self.x2_gui_bounds[0] - 1),
+                                              0.25, fc='r')
             else:
-                gui_line, = self.ax.plot([self.patch.center[0], xk[0]],
-                                         [self.patch.center[1], xk[1]])
+                gui_line, = self.ax.plot([self.pivot_patch.center[0], xk[0]],
+                                         [self.pivot_patch.center[1], xk[1]])
                 gui_line.set_color('red')
                 gui_line.set_linestyle('-')
                 gui_line.set_linewidth(3)
                 plt.draw()
 
-            self.patch.center = (xk[0], xk[1])
-            self.ax.add_patch(self.patch)
+            self.pivot_patch.center = (xk[0], xk[1])
+            self.ax.add_patch(self.pivot_patch)
         else:
             self.started = True
 
