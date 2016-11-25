@@ -354,17 +354,13 @@ class ILPVisu(LPVisu):
         b_cuts -- the b matrix for the cuts
         """
 
-        try:
-            if self.cuts_patch is not None:
-                self.cuts_patch.remove()
-        except ValueError:
-            pass
+        if self.cuts_patch is not None:
+            self.cuts_patch.remove()
 
         for c in self.cuts_circles:
-            try:
-                c.remove()
-            except ValueError:
-                pass
+            c.remove()
+
+        self.cuts_circles = []
 
         self.A_cuts = self.A_cuts + A_cuts
         self.b_cuts = self.b_cuts + b_cuts
@@ -401,6 +397,7 @@ class ILPVisu(LPVisu):
             self.A_cuts = []
             self.b_cuts = []
             self.lines_cuts = []
+            self.cuts_patch = None
 
             self.__draw_integers(self.initial_polygon, self.initial_path)
 
