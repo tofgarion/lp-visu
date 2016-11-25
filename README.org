@@ -1,7 +1,20 @@
 ~lp_visu~ is a simple Python module using matplotlib to visualize the
 progress of the simplex algorithm. You can use for instance
 ~scipy.optimize.linprog~ and its callback function to visualize the
-algorithm used by ~linprog~. See ~lp_visu_example.py~ for an example.
+algorithm used by ~linprog~. It can also be used for visualizing how
+to put cuts for Integer Linear Programming.
+
+There are three examples:
+
+- ~lp_visu_ex.py~ which is a simple example in which you can see how
+  to draw the objective function with a particular value or to draw a
+  pivot point (press enter in the console to continue the script)
+- ~lp_visu_ex.py~ which is a simple example for ILP in which I add
+  some cuts to the initial problem (press enter in the console to
+  continue the script)
+- ~lp_visu_ex_interactive~ which uses ~scipy.optimize.linprog~
+  callback function to move the pivot along the edges of the polygon,
+  showing the simplex running. Press any key to go to the next step.
 
 This code surely needs some refactoring, do not hesitate to give me
 suggestions or to send me pull requests!
