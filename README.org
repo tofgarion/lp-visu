@@ -18,3 +18,6 @@ There are three examples:
 
 This code surely needs some refactoring, do not hesitate to give me
 suggestions or to send me pull requests!
+
+This project is licensed under the terms of the GNU GPL license. You
+should find the complete license in the ~LICENSE.md~ file.
