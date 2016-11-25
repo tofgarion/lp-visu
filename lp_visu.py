@@ -120,7 +120,7 @@ class LPVisu:
         if xk is not None:
             if self.pivot_patch is None:
                 self.pivot_patch = plt.Circle((xk[0], xk[1]),
-                                              0.25, fc='r')
+                                              0.1, fc='r')
             else:
                 self.pivot_patch.center = (xk[0], xk[1])
             self.ax.add_patch(self.pivot_patch)
