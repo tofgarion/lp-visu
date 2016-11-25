@@ -4,7 +4,7 @@ progress of the simplex algorithm. You can use for instance
 algorithm used by ~linprog~. It can also be used for visualizing how
 to put cuts for Integer Linear Programming.
 
-There are three examples:
+There are three examples in the project:
 
 - ~lp_visu_ex.py~ which is a simple example in which you can see how
   to draw the objective function with a particular value or to draw a
