@@ -263,9 +263,9 @@ class LPVisu:
             gui_line.set_linestyle('--')
 
         # draw polygon
-        my_poly = np.array(self.polygon)
-        self.ax.fill(my_poly[self.convex_hull.vertices, 0],
-                     my_poly[self.convex_hull.vertices, 1],
+        draw_polygon = np.array(self.polygon)
+        self.ax.fill(draw_polygon[self.convex_hull.vertices, 0],
+                     draw_polygon[self.convex_hull.vertices, 1],
                      facecolor='palegreen', edgecolor="g", lw=2)
 
     def __init_picture(self):
@@ -339,11 +339,12 @@ class ILPVisu(LPVisu):
         self.cuts_patch = None
         self.cuts_lines_patch = []
         self.cuts_circles = []
-        my_poly = np.array(self.polygon)
-        my_initial_path = plt.Polygon([(my_poly[index, 0], my_poly[index, 1])
-                                       for index in self.convex_hull.vertices],
-                                      edgecolor='b', facecolor='cyan')
-        self.__draw_integers(my_poly, my_initial_path)
+        self.initial_polygon = np.array(self.polygon)
+        self.initial_path = plt.Polygon([(self.initial_polygon[index, 0],
+                                          self.initial_polygon[index, 1])
+                                         for index in self.convex_hull.vertices],
+                                        edgecolor='b', facecolor='cyan')
+        self.__draw_integers(self.initial_polygon, self.initial_path)
 
     def add_cuts(self, A_cuts, b_cuts):
         """A method to add cuts. Set one argument to None to reset.
@@ -373,19 +374,19 @@ class ILPVisu(LPVisu):
                                                                            self.b + self.b_cuts,
                                                                            self.lines + self.lines_cuts)
 
-        my_poly = np.array(polygon_cuts)
-        self.cuts_patch = plt.Polygon([(my_poly[index, 0], my_poly[index, 1])
+        draw_polygon = np.array(polygon_cuts)
+        self.cuts_patch = plt.Polygon([(draw_polygon[index, 0], draw_polygon[index, 1])
                                        for index in convex_hull_cuts.vertices],
                                       edgecolor='b', facecolor='cyan')
         self.ax.add_patch(self.cuts_patch)
 
         for l in self.lines_cuts:
-            my_line_patch = plt.Polygon(l, color='b', linewidth=2,
-                                        linestyle='dashed', closed=False)
-            self.ax.add_patch(my_line_patch)
-            self.cuts_lines_patch.append(my_line_patch)
+            line_patch = plt.Polygon(l, color='b', linewidth=2,
+                                     linestyle='dashed', closed=False)
+            self.ax.add_patch(line_patch)
+            self.cuts_lines_patch.append(line_patch)
 
-        self.__draw_integers(my_poly, self.cuts_patch._path)
+        self.__draw_integers(draw_polygon, self.cuts_patch._path)
 
     def reset_cuts(self):
         """Remove all cuts."""
@@ -400,13 +401,16 @@ class ILPVisu(LPVisu):
             self.b_cuts = []
             self.lines_cuts = []
 
-            my_poly = np.array(self.polygon)
-            my_initial_path = plt.Polygon([(my_poly[index, 0], my_poly[index, 1])
-                                           for index in self.convex_hull.vertices],
-                                          edgecolor='b', facecolor='cyan')
-            self.__draw_integers(my_poly, my_initial_path)
+            self.__draw_integers(self.initial_polygon, self.initial_path)
 
     def __draw_integers(self, polygon, patch):
+        """Internal function to draw integer points inside polygon
+
+        Keyword Arguments:
+        polygon -- the polygon into which draw integer points
+        patch   -- the patch corresponding to the polygon
+        """
+
         x1_min = min([p[0] for p in polygon])
         x1_max = max([p[0] for p in polygon])
 
