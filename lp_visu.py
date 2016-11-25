@@ -80,7 +80,7 @@ class LPVisu:
         self.obj_patch     = None
         self.started       = False
         self.lines         = self.__compute_lines__()
-        self.polygon, self.convex_hull = self.__compute_polygon_convex_hull__()
+        self.polygon, self.convex_hull = self.__compute_polygon_convex_hull__(self.A, self.b)
 
         # initialize picture
         self.__init_picture()
@@ -222,10 +222,16 @@ class LPVisu:
 
         return lines
 
-    def __compute_polygon_convex_hull__(self):
+    def __compute_polygon_convex_hull__(self, A, b):
         """Compute the polygon of admissible solutions and the associated
         convex hull. Returns a pair with first element being the list
         of points of the polygon and second element the convex hull.
+
+        This method is parametrized to be possibly used with subclasses.
+
+        Keyword Arguments:
+        A -- the A matrix
+        b -- the b matrix
 
         Not to be used outside the class.
         """
