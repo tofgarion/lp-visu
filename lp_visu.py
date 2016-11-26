@@ -1,9 +1,8 @@
-"""A module to visualize simplex algorithm for linear programs with
-two variables.
+"""A module to visualize simplex algorithm for (integer) linear
+programs with two variables.
 """
 
 import matplotlib.pyplot as plt
-import matplotlib.path as path
 import numpy as np
 
 from scipy.spatial import ConvexHull
