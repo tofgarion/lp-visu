@@ -19,5 +19,9 @@ There are three examples in the project:
 This code surely needs some refactoring, do not hesitate to give me
 suggestions or to send me pull requests!
 
+~lp_visu_notebook.py~ contains a simpler version of LPVisu designed to
+be used with notebooks due to problems with
+matplotlib. ~lp_visu_ex.ipynb~ is a notebook example.
+
 This project is licensed under the terms of the GNU GPL license. You
 should find the complete license in the ~LICENSE.md~ file.
