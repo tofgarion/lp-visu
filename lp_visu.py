@@ -382,7 +382,7 @@ class ILPVisu(LPVisu):
             self.ax.add_patch(line_patch)
             self.cuts_lines_patch.append(line_patch)
 
-        self.__draw_integers(draw_polygon, self.cuts_patch._path)
+        self.__draw_integers(draw_polygon, self.cuts_patch)
 
     def reset_cuts(self):
         """Remove all cuts."""
@@ -416,7 +416,7 @@ class ILPVisu(LPVisu):
 
         for x in range(int(x1_min), int(x1_max) + 1):
             for y in range(int(x2_min), int(x2_max) + 1):
-                if patch.contains_point((x, y), radius=self.epsilon):
+                if patch._path.contains_point((x, y), radius=self.epsilon):
                     circle = plt.Circle((x, y), 0.075, fc='b')
                     self.cuts_circles.append(circle)
                     self.ax.add_patch(circle)
