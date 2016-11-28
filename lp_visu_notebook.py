@@ -246,6 +246,8 @@ class LPVisu():
 
         # create figure
         fig = plt.figure()
+        fig.set_size_inches(self.x1_gui_bounds[1]-self.x1_gui_bounds[0],
+                            self.x2_gui_bounds[1]-self.x2_gui_bounds[0])
         ax = plt.axes(xlim=self.x1_gui_bounds,
                       ylim=self.x2_gui_bounds)
 
