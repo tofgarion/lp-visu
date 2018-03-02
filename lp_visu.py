@@ -335,6 +335,7 @@ class ILPVisu(LPVisu):
         self.lines_cuts = []
         self.A_cuts = []
         self.b_cuts = []
+        self.initial_patch = None
         self.cuts_patch = None
         self.cuts_lines_patch = []
         self.cuts_circles = []
@@ -346,12 +347,23 @@ class ILPVisu(LPVisu):
         self.__draw_integers(self.initial_polygon, self.initial_path)
 
     def add_cuts(self, A_cuts, b_cuts):
-        """A method to add cuts. Set one argument to None to reset.
+        """A method to add cuts.
 
         Keyword Arguments:
         A_cuts -- the A matrix for the cuts
         b_cuts -- the b matrix for the cuts
         """
+
+        if self.cuts_patch is None:
+            polygon, convex_hull = self._compute_polygon_convex_hull(self.A,
+                                                                     self.b,
+                                                                     self.lines)
+
+            draw_polygon = np.array(polygon)
+            self.initial_patch = plt.Polygon([(draw_polygon[index, 0], draw_polygon[index, 1])
+                                              for index in convex_hull.vertices],
+                                             edgecolor='b', facecolor='tomato')
+            self.ax.add_patch(self.initial_patch)
 
         if self.cuts_patch is not None:
             self.cuts_patch.remove()
@@ -373,7 +385,7 @@ class ILPVisu(LPVisu):
         draw_polygon = np.array(polygon_cuts)
         self.cuts_patch = plt.Polygon([(draw_polygon[index, 0], draw_polygon[index, 1])
                                        for index in convex_hull_cuts.vertices],
-                                      edgecolor='b', facecolor='cyan')
+                                      edgecolor='g', facecolor='palegreen')
         self.ax.add_patch(self.cuts_patch)
 
         for l in self.lines_cuts:
@@ -386,6 +398,10 @@ class ILPVisu(LPVisu):
 
     def reset_cuts(self):
         """Remove all cuts."""
+
+        if self.initial_patch is not None:
+            self.initial_patch.remove()
+            self.initial_patch = None
 
         if self.cuts_patch is not None:
             self.cuts_patch.remove()
