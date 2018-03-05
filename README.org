@@ -9,7 +9,7 @@ There are three examples in the project:
 - ~lp_visu_ex.py~ which is a simple example in which you can see how
   to draw the objective function with a particular value or to draw a
   pivot point (press enter in the console to continue the script)
-- ~lp_visu_ex.py~ which is a simple example for ILP in which I add
+- ~ilp_visu_ex.py~ which is a simple example for ILP in which I add
   some cuts to the initial problem (press enter in the console to
   continue the script)
 - ~lp_visu_ex_interactive~ which uses ~scipy.optimize.linprog~
