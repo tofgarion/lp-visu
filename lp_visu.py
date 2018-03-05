@@ -389,7 +389,7 @@ class ILPVisu(LPVisu):
         self.ax.add_patch(self.cuts_patch)
 
         for l in self.lines_cuts:
-            line_patch = plt.Polygon(l, color='b', linewidth=2,
+            line_patch = plt.Polygon(l, color='r', linewidth=2,
                                      linestyle='dashed', closed=False)
             self.ax.add_patch(line_patch)
             self.cuts_lines_patch.append(line_patch)
