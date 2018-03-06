@@ -39,7 +39,7 @@ def intersect(a1, a2, b1, b2):
     return (num / denom.astype(float)) * vb + b1
 
 
-class LPVisu():
+class LPVisuNB():
     """This class is a simple visualization for linear programs with 2
     variables to be used in a notebook with %matplotlib inline.
 
@@ -54,7 +54,7 @@ class LPVisu():
                  A_cuts=None, b_cuts=None,
                  integers = None,
                  original=None):
-        """Create a new ILPVisu object.
+        """Create a new LPVisuNB object.
 
         Keyword Arguments:
         A             -- a 2D matrix giving the constraints of the LP problem
@@ -272,7 +272,8 @@ class LPVisu():
         initial_polygon = np.array(polygon)
         initial_patch = plt.Polygon([(initial_polygon[index, 0],
                                       initial_polygon[index, 1])
-                                     for index in convex_hull.vertices])
+                                     for index in convex_hull.vertices],
+                                    edgecolor='r', facecolor='tomato')
 
         # cuts if there are some
         if self.A_cuts is not None or self.b_cuts is not None:
@@ -285,12 +286,13 @@ class LPVisu():
             polygon_cuts = np.array(polygon_cuts)
             cuts_patch = plt.Polygon([(polygon_cuts[index, 0], polygon_cuts[index, 1])
                                       for index in convex_hull_cuts.vertices],
-                                     edgecolor='b', facecolor='cyan')
+                                     edgecolor='g', facecolor='palegreen')
 
+            ax.add_patch(initial_patch)
             ax.add_patch(cuts_patch)
 
             for l in lines_cuts:
-                line_patch = plt.Polygon(l, color='b', linewidth=2,
+                line_patch = plt.Polygon(l, color='r', linewidth=2,
                                          linestyle='dashed', closed=False)
                 ax.add_patch(line_patch)
 
