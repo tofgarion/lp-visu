@@ -362,7 +362,7 @@ class ILPVisu(LPVisu):
             draw_polygon = np.array(polygon)
             self.initial_patch = plt.Polygon([(draw_polygon[index, 0], draw_polygon[index, 1])
                                               for index in convex_hull.vertices],
-                                             edgecolor='b', facecolor='tomato')
+                                             edgecolor='r', facecolor='tomato')
             self.ax.add_patch(self.initial_patch)
 
         if self.cuts_patch is not None:
