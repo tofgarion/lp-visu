@@ -65,7 +65,7 @@ class LPVisu:
                          Defaults to 1E-6
         """
 
-        self.A = A
+        self.A = list(A)
         self.b = b
         self.c = c
         self.x1_bounds = x1_bounds

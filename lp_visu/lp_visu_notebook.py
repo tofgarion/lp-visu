@@ -88,7 +88,7 @@ class LPVisuNB():
             self.x2_grid_step = original.x2_grid_step
             self.epsilon = original.epsilon
         else:
-            self.A = A
+            self.A = list(A)
             self.b = b
             self.c = c
             self.x1_bounds = x1_bounds
