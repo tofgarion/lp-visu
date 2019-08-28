@@ -22,20 +22,18 @@ visu = LPVisu(A, b, c,
               x1_bounds, x2_bounds,
               x1_gui_bounds, x2_gui_bounds)
 
-def lp_simple_callback(xk, **kwargs):
+def lp_simple_callback(optimizeResult):
     """A simple callback function to see what is happening to print each
     step of the algorithm and to use the visualization.
 
     """
 
-    print("current iteration: " + str(kwargs["nit"]))
-    print("current tableau: \n" + str(kwargs["tableau"]))
-    print("current indices: " + str(kwargs["basis"]))
-    print("current pivot: " + str(kwargs["pivot"]))
-    print("current solution: " + str(xk))
+    print("current iteration: " + str(optimizeResult["nit"]))
+    print("current slack: " + str(optimizeResult["slack"]))
+    print("current solution: " + str(optimizeResult["x"]))
     print()
 
-    visu.draw_pivot_interactive(xk, True)
+    visu.draw_pivot_interactive(optimizeResult["x"], True)
 
 # solve the problem
 res = linprog(-1.0 * np.array(c), A_ub=A, b_ub=b,
