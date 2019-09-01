@@ -48,7 +48,8 @@ class LPVisu:
                  x1_bounds, x2_bounds,
                  x1_gui_bounds, x2_gui_bounds,
                  x1_grid_step=1, x2_grid_step=1,
-                 epsilon=1E-6):
+                 epsilon=1E-6,
+                 notebook=False, xk=None, obj=None, scale=1.0):
         """Create a new LPVisu object.
 
         Keyword Arguments:
@@ -63,6 +64,18 @@ class LPVisu:
         x2_grid_step  -- an integer representing the step for x2 axis
         epsilon       -- the precision needed for floating points operations.
                          Defaults to 1E-6
+        notebook      -- is the object to be used in a Jupyter Notebook.
+                         Defaults to False.
+        xk            -- the coordinates of the pivot to plot when creating the
+                         object (None if no drawing). Useful for notebooks. Must
+                         be used with option notebook set to True
+                         Defaults to None.
+        obj           -- the value of the objective function if to be plotted when                          creating the object. Must be used with option notebook
+                         set to True.
+                         Defaults to None.
+        scale         -- the scale factor for graphics. Must be used with option
+                         notebook set to True.
+                         Defaults to 1.0.
         """
 
         self.A = list(A)
@@ -75,6 +88,10 @@ class LPVisu:
         self.x1_grid_step = x1_grid_step
         self.x2_grid_step = x2_grid_step
         self.epsilon = epsilon
+        self.notebook = notebook
+        self.xk = xk
+        self.obj = obj
+        self.scale = scale
         self.ax = None
         self.pivot_patch = None
         self.obj_patch = None
@@ -121,7 +138,8 @@ class LPVisu:
         if xk is not None:
             if self.pivot_patch is None:
                 self.pivot_patch = plt.Circle((xk[0], xk[1]),
-                                              0.1, fc='r')
+                                              0.25 if self.notebook else 0.1,
+                                              fc='r')
             else:
                 self.pivot_patch.center = (xk[0], xk[1])
             self.ax.add_patch(self.pivot_patch)
@@ -274,6 +292,11 @@ class LPVisu:
 
         # create figure
         self.fig = plt.figure()
+
+        if self.notebook:
+            self.fig.set_size_inches(self.scale * self.x1_gui_bounds[1]-self.x1_gui_bounds[0],
+                                     self.scale * self.x2_gui_bounds[1]-self.x2_gui_bounds[0])
+
         self.ax = plt.axes(xlim=self.x1_gui_bounds,
                            ylim=self.x2_gui_bounds)
 
@@ -290,6 +313,17 @@ class LPVisu:
 
         # draw equations and polygon
         self.__draw_equations_and_polygon(self.ax)
+
+        # possibly draw pivot and objective function if option
+        # notebook is True
+        if self.notebook:
+            # draw objective function if asked
+            if self.obj:
+                self.draw_objective_function(self.obj)
+
+            # draw pivot if asked
+            if self.xk is not None:
+                self.draw_pivot(self.xk)
 
         # finalize
         plt.draw()
@@ -692,7 +726,7 @@ class LPVisuNB():
                                          linestyle='dashed', closed=False)
                 ax.add_patch(line_patch)
 
-        #draw integers if asked
+        # draw integers if asked
         if self.integers is not None:
             if self.A_cuts is not None or self.b_cuts is not None:
                 polygon_integer = polygon_cuts
