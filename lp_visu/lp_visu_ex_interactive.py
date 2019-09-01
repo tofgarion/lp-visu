@@ -6,6 +6,8 @@ from scipy.optimize import linprog
 
 import numpy as np
 
+print("click on the figure to show scipy.optimize.linprog Simplexe step")
+
 # problem definition
 A = [[1.0, 0.0], [1.0, 2.0], [2.0, 1.0]]
 b = [8.0, 15.0, 18.0]
