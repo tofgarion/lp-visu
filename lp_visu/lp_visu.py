@@ -49,6 +49,8 @@ class LPVisu:
                  x1_gui_bounds, x2_gui_bounds,
                  x1_grid_step=1, x2_grid_step=1,
                  epsilon=1E-6,
+                 ilp = False,
+                 A_cuts = None, b_cuts = None, integers = False,
                  notebook=False, xk=None, obj=None, scale=1.0):
         """Create a new LPVisu object.
 
@@ -64,6 +66,9 @@ class LPVisu:
         x2_grid_step  -- an integer representing the step for x2 axis
         epsilon       -- the precision needed for floating points operations.
                          Defaults to 1E-6
+        ilp           -- is it an ILP problem (to draw integers)? Must be set to
+                         True if cuts are to used.
+                         Defaults to False
         notebook      -- is the object to be used in a Jupyter Notebook.
                          Defaults to False.
         xk            -- the coordinates of the pivot to plot when creating the
@@ -78,6 +83,7 @@ class LPVisu:
                          Defaults to 1.0.
         """
 
+        # attributes
         self.A = list(A)
         self.b = b
         self.c = c
@@ -92,6 +98,17 @@ class LPVisu:
         self.xk = xk
         self.obj = obj
         self.scale = scale
+        if A_cuts:
+            self.A_cuts = A_cuts
+        else:
+            self.A_cuts = []
+        if b_cuts:
+            self.b_cuts = b_cuts
+        else:
+            self.b_cuts = []
+        self.integers = integers
+
+        # prepare graphics objects
         self.ax = None
         self.pivot_patch = None
         self.obj_patch = None
@@ -100,9 +117,23 @@ class LPVisu:
         self.polygon, self.convex_hull = self._compute_polygon_convex_hull(self.A,
                                                                            self.b,
                                                                            self.lines)
+        self.lines_cuts = []
+        self.initial_patch = None
+        self.cuts_patch = None
+        self.cuts_lines_patch = []
+        self.cuts_circles = []
+        self.initial_polygon = np.array(self.polygon)
+        self.initial_path = plt.Polygon([(self.initial_polygon[index, 0],
+                                          self.initial_polygon[index, 1])
+                                         for index in self.convex_hull.vertices],
+                                        edgecolor='b', facecolor='cyan')
 
         # initialize picture
         self.__init_picture()
+
+        # draw integers inside polygon if asked
+        if integers:
+            self.__draw_integers(self.initial_polygon, self.initial_path)
 
     def draw_objective_function(self, value):
         """Draw the objective function for a specific value.
@@ -175,6 +206,76 @@ class LPVisu:
             plt.waitforbuttonpress()
         else:
             plt.pause(wait_time)
+
+    def add_cuts(self, A_cuts, b_cuts):
+        """A method to add cuts.
+
+        Keyword Arguments:
+        A_cuts -- the A matrix for the cuts
+        b_cuts -- the b matrix for the cuts
+        """
+
+        if self.cuts_patch is None:
+            polygon, convex_hull = self._compute_polygon_convex_hull(self.A,
+                                                                     self.b,
+                                                                     self.lines)
+
+            draw_polygon = np.array(polygon)
+            self.initial_patch = plt.Polygon([(draw_polygon[index, 0], draw_polygon[index, 1])
+                                              for index in convex_hull.vertices],
+                                             edgecolor='r', facecolor='tomato')
+            self.ax.add_patch(self.initial_patch)
+
+        if self.cuts_patch is not None:
+            self.cuts_patch.remove()
+
+        for c in self.cuts_circles:
+            c.remove()
+
+        self.cuts_circles = []
+
+        self.A_cuts = self.A_cuts + A_cuts
+        self.b_cuts = self.b_cuts + b_cuts
+        self.lines_cuts = self._compute_lines(
+            self.A_cuts, self.b_cuts, bounds=False)
+
+        polygon_cuts, convex_hull_cuts = self._compute_polygon_convex_hull(self.A + self.A_cuts,
+                                                                           self.b + self.b_cuts,
+                                                                           self.lines + self.lines_cuts)
+
+        draw_polygon = np.array(polygon_cuts)
+        self.cuts_patch = plt.Polygon([(draw_polygon[index, 0], draw_polygon[index, 1])
+                                       for index in convex_hull_cuts.vertices],
+                                      edgecolor='g', facecolor='palegreen')
+        self.ax.add_patch(self.cuts_patch)
+
+        for l in self.lines_cuts:
+            line_patch = plt.Polygon(l, color='r', linewidth=2,
+                                     linestyle='dashed', closed=False)
+            self.ax.add_patch(line_patch)
+            self.cuts_lines_patch.append(line_patch)
+
+        self.__draw_integers(draw_polygon, self.cuts_patch)
+
+    def reset_cuts(self):
+        """Remove all cuts."""
+
+        if self.initial_patch is not None:
+            self.initial_patch.remove()
+            self.initial_patch = None
+
+        if self.cuts_patch is not None:
+            self.cuts_patch.remove()
+
+            for p in self.cuts_lines_patch:
+                p.remove()
+
+            self.A_cuts = []
+            self.b_cuts = []
+            self.lines_cuts = []
+            self.cuts_patch = None
+
+            self.__draw_integers(self.initial_polygon, self.initial_path)
 
     def _compute_lines(self, A, b, bounds=True):
         """Computes lines points for equations. Returns a list with points
@@ -282,6 +383,27 @@ class LPVisu:
                      draw_polygon[self.convex_hull.vertices, 1],
                      facecolor='palegreen', edgecolor="g", lw=2)
 
+    def __draw_integers(self, polygon, patch):
+        """Internal function to draw integer points inside polygon
+
+        Keyword Arguments:
+        polygon -- the polygon into which draw integer points
+        patch   -- the patch corresponding to the polygon
+        """
+
+        x1_min = min([p[0] for p in polygon])
+        x1_max = max([p[0] for p in polygon])
+
+        x2_min = min([p[1] for p in polygon])
+        x2_max = max([p[1] for p in polygon])
+
+        for x in range(int(x1_min), int(x1_max) + 1):
+            for y in range(int(x2_min), int(x2_max) + 1):
+                if patch._path.contains_point((x, y), radius=self.epsilon):
+                    circle = plt.Circle((x, y), 0.075, fc='b')
+                    self.cuts_circles.append(circle)
+                    self.ax.add_patch(circle)
+
     def __init_picture(self):
         """Initialize the picture and draw the equations lines and polygon.
 
@@ -324,6 +446,38 @@ class LPVisu:
             # draw pivot if asked
             if self.xk is not None:
                 self.draw_pivot(self.xk)
+
+            # cuts if there are some
+            if self.A_cuts is not None or self.b_cuts is not None:
+                lines_cuts = self._compute_lines(self.A_cuts, self.b_cuts, bounds=False)
+
+                polygon_cuts, convex_hull_cuts = self._compute_polygon_convex_hull(self.A + self.A_cuts,
+                                                                                   self.b + self.b_cuts,
+                                                                                   lines + lines_cuts)
+
+                polygon_cuts = np.array(polygon_cuts)
+                cuts_patch = plt.Polygon([(polygon_cuts[index, 0], polygon_cuts[index, 1])
+                                          for index in convex_hull_cuts.vertices],
+                                         edgecolor='b', facecolor='cyan')
+
+                ax.add_patch(cuts_patch)
+
+                for l in lines_cuts:
+                    line_patch = plt.Polygon(l, color='b', linewidth=2,
+                                             linestyle='dashed', closed=False)
+                    ax.add_patch(line_patch)
+
+            #draw integers if asked
+            if self.integers is not None:
+                if self.A_cuts is not None or self.b_cuts is not None:
+                    polygon_integer = polygon_cuts
+                    patch_integer = cuts_patch
+                else:
+                    polygon_integer = initial_polygon
+                    patch_integer = initial_patch
+
+                self.__draw_integers(ax, polygon_integer, patch_integer)
+
 
         # finalize
         plt.draw()

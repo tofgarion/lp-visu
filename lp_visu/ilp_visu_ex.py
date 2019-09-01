@@ -2,7 +2,7 @@
 acceptable solutions for a particular integer linear programming.
 """
 
-from lp_visu import ILPVisu
+from lp_visu import LPVisu
 
 # problem definition
 A = [[1.0, 0.0], [1.0, 2.0], [2.0, 1.0]]
@@ -17,9 +17,10 @@ x1_gui_bounds = (-1, 16)
 x2_gui_bounds = (-1, 10)
 
 print("Initial problem")
-visu = ILPVisu(A, b, c,
-               x1_bounds, x2_bounds,
-               x1_gui_bounds, x2_gui_bounds)
+visu = LPVisu(A, b, c,
+              x1_bounds, x2_bounds,
+              x1_gui_bounds, x2_gui_bounds,
+              integers = True)
 
 input()
 
