@@ -113,10 +113,10 @@ class LPVisu:
         self.pivot_patch = None
         self.obj_patch = None
         self.started = False
-        self.lines = self._compute_lines(self.A, self.b)
-        self.polygon, self.convex_hull = self._compute_polygon_convex_hull(self.A,
-                                                                           self.b,
-                                                                           self.lines)
+        self.lines = self.__compute_lines(self.A, self.b)
+        self.polygon, self.convex_hull = self.__compute_polygon_convex_hull(self.A,
+                                                                            self.b,
+                                                                            self.lines)
         self.lines_cuts = []
         self.initial_patch = None
         self.cuts_patch = None
@@ -216,9 +216,9 @@ class LPVisu:
         """
 
         if self.cuts_patch is None:
-            polygon, convex_hull = self._compute_polygon_convex_hull(self.A,
-                                                                     self.b,
-                                                                     self.lines)
+            polygon, convex_hull = self.__compute_polygon_convex_hull(self.A,
+                                                                      self.b,
+                                                                      self.lines)
 
             draw_polygon = np.array(polygon)
             self.initial_patch = plt.Polygon([(draw_polygon[index, 0], draw_polygon[index, 1])
@@ -236,12 +236,12 @@ class LPVisu:
 
         self.A_cuts = self.A_cuts + A_cuts
         self.b_cuts = self.b_cuts + b_cuts
-        self.lines_cuts = self._compute_lines(
+        self.lines_cuts = self.__compute_lines(
             self.A_cuts, self.b_cuts, bounds=False)
 
-        polygon_cuts, convex_hull_cuts = self._compute_polygon_convex_hull(self.A + self.A_cuts,
-                                                                           self.b + self.b_cuts,
-                                                                           self.lines + self.lines_cuts)
+        polygon_cuts, convex_hull_cuts = self.__compute_polygon_convex_hull(self.A + self.A_cuts,
+                                                                            self.b + self.b_cuts,
+                                                                            self.lines + self.lines_cuts)
 
         draw_polygon = np.array(polygon_cuts)
         self.cuts_patch = plt.Polygon([(draw_polygon[index, 0], draw_polygon[index, 1])
@@ -277,7 +277,7 @@ class LPVisu:
 
             self.__draw_integers(self.initial_polygon, self.initial_path)
 
-    def _compute_lines(self, A, b, bounds=True):
+    def __compute_lines(self, A, b, bounds=True):
         """Computes lines points for equations. Returns a list with points
         representing intersections of each constraint with the GUI bounds.
 
@@ -309,7 +309,7 @@ class LPVisu:
 
         return lines
 
-    def _compute_polygon_convex_hull(self, A, b, lines):
+    def __compute_polygon_convex_hull(self, A, b, lines):
         """Compute the polygon of admissible solutions and the associated
         convex hull. Returns a pair with first element being the list
         of points of the polygon and second element the convex hull.
@@ -446,11 +446,11 @@ class LPVisu:
 
             # cuts if there are some
             if self.A_cuts is not None or self.b_cuts is not None:
-                lines_cuts = self._compute_lines(self.A_cuts, self.b_cuts, bounds=False)
+                lines_cuts = self.__compute_lines(self.A_cuts, self.b_cuts, bounds=False)
 
-                polygon_cuts, convex_hull_cuts = self._compute_polygon_convex_hull(self.A + self.A_cuts,
-                                                                                   self.b + self.b_cuts,
-                                                                                   self.lines + lines_cuts)
+                polygon_cuts, convex_hull_cuts = self.__compute_polygon_convex_hull(self.A + self.A_cuts,
+                                                                                    self.b + self.b_cuts,
+                                                                                    self.lines + lines_cuts)
 
                 polygon_cuts = np.array(polygon_cuts)
                 cuts_patch = plt.Polygon([(polygon_cuts[index, 0], polygon_cuts[index, 1])
