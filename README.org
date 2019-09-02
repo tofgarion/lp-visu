@@ -2,7 +2,13 @@
 progress of the simplex algorithm. You can use for instance
 ~scipy.optimize.linprog~ and its callback function to visualize the
 algorithm used by ~linprog~. It can also be used for visualizing how
-to put cuts for Integer Linear Programming.
+to put cuts for Integer Linear Programming. It works with problems
+with 2 variables.
+
+The dependencies are the following:
+
+- Python >= 3.7
+- SciPy >= 1.2
 
 There are three examples in the project:
 
@@ -17,11 +23,14 @@ There are three examples in the project:
   showing the simplex running. Press any key to go to the next step.
 
 This code surely needs some refactoring, do not hesitate to give me
-suggestions or to send me pull requests!
+suggestions or to send me pull requests! Documentation in the code
+should be sufficient to understand how to use ~lp_visu~.
 
-~lp_visu_notebook.py~ contains a simpler version of LPVisu designed to
-be used with notebooks due to problems with
-matplotlib. ~lp_visu_ex.ipynb~ is a notebook example.
+~lp_visu_notebook.py~ and ~ilp_visu_notebook.py~ show how to use
+~lp_visu~ in Jupyter notebooks. In this case, you have to define cuts,
+objective function visualization etc. when creating the ~LPVisu~
+objects, the methods defined to add or remove cuts etc. are not
+working.
 
 This project is licensed under the terms of the GNU GPL license. You
 should find the complete license in the ~LICENSE.md~ file.
