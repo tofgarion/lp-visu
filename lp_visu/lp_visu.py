@@ -49,9 +49,9 @@ class LPVisu:
                  x1_gui_bounds, x2_gui_bounds,
                  x1_grid_step=1, x2_grid_step=1,
                  epsilon=1E-6,
-                 ilp = False,
-                 A_cuts = None, b_cuts = None, integers = False,
-                 notebook=False, xk=None, obj=None, scale=1.0):
+                 A_cuts=None, b_cuts=None, integers=False,
+                 xk=None, obj=None,
+                 scale=1.0, pivot_scale=1.0):
         """Create a new LPVisu object.
 
         Keyword Arguments:
@@ -66,20 +66,23 @@ class LPVisu:
         x2_grid_step  -- an integer representing the step for x2 axis
         epsilon       -- the precision needed for floating points operations.
                          Defaults to 1E-6
-        ilp           -- is it an ILP problem (to draw integers)? Must be set to
-                         True if cuts are to used.
+        A_cuts        -- a list representing cutting planes equations (left part).
+                         Should be used with b_cuts.
+                         Defaults to None
+        b_cuts        -- a list representing cutting planes equations (right part).
+                         Should be used with A_cuts.
+                         Defaults to None
+        integers      -- should we draw integers points inside the polygon?
                          Defaults to False
-        notebook      -- is the object to be used in a Jupyter Notebook.
-                         Defaults to False.
         xk            -- the coordinates of the pivot to plot when creating the
-                         object (None if no drawing). Useful for notebooks. Must
-                         be used with option notebook set to True
+                         object (None if no drawing).
                          Defaults to None.
-        obj           -- the value of the objective function if to be plotted when                          creating the object. Must be used with option notebook
-                         set to True.
+        obj           -- the value of the objective function if to be plotted when
+                         creating the object.
                          Defaults to None.
-        scale         -- the scale factor for graphics. Must be used with option
-                         notebook set to True.
+        scale         -- the scale factor for graphics.
+                         Defaults to 1.0.
+        pivot_scale   -- the scale factor to draw pivot.
                          Defaults to 1.0.
         """
 
@@ -94,10 +97,10 @@ class LPVisu:
         self.x1_grid_step = x1_grid_step
         self.x2_grid_step = x2_grid_step
         self.epsilon = epsilon
-        self.notebook = notebook
         self.xk = xk
         self.obj = obj
         self.scale = scale
+        self.pivot_scale = pivot_scale
         if A_cuts:
             self.A_cuts = A_cuts
         else:
@@ -126,7 +129,7 @@ class LPVisu:
         self.initial_path = plt.Polygon([(self.initial_polygon[index, 0],
                                           self.initial_polygon[index, 1])
                                          for index in self.convex_hull.vertices],
-                                        edgecolor='b', facecolor='cyan')
+                                        edgecolor='g', facecolor='palegreen')
 
         # initialize picture
         self.__init_picture()
@@ -134,6 +137,21 @@ class LPVisu:
         # draw integers inside polygon if asked
         if self.integers:
             self.__draw_integers(self.initial_polygon, self.initial_path)
+
+        # draw objective function if asked
+        if self.obj is not None:
+            self.draw_objective_function(self.obj)
+
+        # draw pivot if asked
+        if self.xk is not None:
+            self.draw_pivot(self.xk)
+
+        # draw cuts if asked
+        if self.A_cuts and self.b_cuts:
+           self.add_cuts(self.A_cuts, self.b_cuts)
+
+        # finalize picture
+        self.__finalize_picture()
 
     def draw_objective_function(self, value):
         """Draw the objective function for a specific value.
@@ -169,7 +187,7 @@ class LPVisu:
         if xk is not None:
             if self.pivot_patch is None:
                 self.pivot_patch = plt.Circle((xk[0], xk[1]),
-                                              0.25 if self.notebook else 0.1,
+                                              self.pivot_scale * 0.1,
                                               fc='r')
             else:
                 self.pivot_patch.center = (xk[0], xk[1])
@@ -381,8 +399,7 @@ class LPVisu:
         draw_polygon = np.array(self.polygon)
         self.ax.fill(draw_polygon[self.convex_hull.vertices, 0],
                      draw_polygon[self.convex_hull.vertices, 1],
-                     facecolor='tomato' if self.notebook else 'palegreen',
-                     edgecolor="r" if self.notebook else "g", lw=2)
+                     facecolor='palegreen', edgecolor="g", lw=2)
 
     def __draw_integers(self, polygon, patch):
         """Internal function to draw integer points inside polygon
@@ -416,9 +433,8 @@ class LPVisu:
         # create figure
         self.fig = plt.figure()
 
-        if self.notebook:
-            self.fig.set_size_inches(self.scale * self.x1_gui_bounds[1]-self.x1_gui_bounds[0],
-                                     self.scale * self.x2_gui_bounds[1]-self.x2_gui_bounds[0])
+        self.fig.set_size_inches(self.scale * (self.x1_gui_bounds[1] - self.x1_gui_bounds[0]),
+                                 self.scale * (self.x2_gui_bounds[1] - self.x2_gui_bounds[0]))
 
         self.ax = plt.axes(xlim=self.x1_gui_bounds,
                            ylim=self.x2_gui_bounds)
@@ -437,48 +453,7 @@ class LPVisu:
         # draw equations and polygon
         self.__draw_equations_and_polygon(self.ax)
 
-        # possibly draw pivot and objective function if option
-        # notebook is True
-        if self.notebook:
-            # draw objective function if asked
-            if self.obj:
-                self.draw_objective_function(self.obj)
-
-            # cuts if there are some
-            if self.A_cuts is not None or self.b_cuts is not None:
-                lines_cuts = self.__compute_lines(self.A_cuts, self.b_cuts, bounds=False)
-
-                polygon_cuts, convex_hull_cuts = self.__compute_polygon_convex_hull(self.A + self.A_cuts,
-                                                                                    self.b + self.b_cuts,
-                                                                                    self.lines + lines_cuts)
-
-                polygon_cuts = np.array(polygon_cuts)
-                cuts_patch = plt.Polygon([(polygon_cuts[index, 0], polygon_cuts[index, 1])
-                                          for index in convex_hull_cuts.vertices],
-                                         edgecolor='g', facecolor='palegreen')
-
-                self.ax.add_patch(cuts_patch)
-
-                for l in lines_cuts:
-                    line_patch = plt.Polygon(l, color='b', linewidth=2,
-                                             linestyle='dashed', closed=False)
-                    self.ax.add_patch(line_patch)
-
-            #draw integers if asked
-            if self.integers:
-                if self.A_cuts is not None or self.b_cuts is not None:
-                    polygon_integer = polygon_cuts
-                    patch_integer = cuts_patch
-                else:
-                    polygon_integer = self.initial_polygon
-                    patch_integer = self.initial_patch
-
-                self.__draw_integers(polygon_integer, patch_integer)
-
-            # draw pivot if asked
-            if self.xk is not None:
-                self.draw_pivot(self.xk)
-
+    def __finalize_picture(self):
         # finalize
         plt.draw()
         plt.show()
