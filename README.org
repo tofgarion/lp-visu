@@ -7,7 +7,7 @@ with 2 variables.
 
 The dependencies are the following:
 
-- Python >= 3.7
+- Python >= 3.8
 - SciPy >= 1.2
 
 There are three examples in the project:

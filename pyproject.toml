@@ -1,0 +1,23 @@
+[build-system]
+requires      = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "lp-visu"
+version         = "1.1.0"
+authors         = [
+                { name = "Christophe Garion" },
+                ]
+description     = "A module to visualize 2D (integer) linear problems solving"
+readme          = "README.md"
+requires-python = ">=3.8"
+dependencies    = [ "matplotlib", "numpy" ]
+classifiers     = [
+                "Programming Language :: Python :: 3",
+                "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+                "Operating System :: OS Independent",
+                ]
+
+[project.urls]
+Homepage = "https://github.com/tofgarion/lp-visu"
+Issues   = "https://github.com/tofgarion/lp-visu/issues"
